@@ -2,50 +2,68 @@ import streamlit as st
 import pickle
 import numpy as np
 
-# Load the trained model and PCA
+# Page config
+st.set_page_config(page_title="Google Play App Predictor", page_icon="📱", layout="centered")
+
+# Load model and PCA
 model = pickle.load(open('model.pkl', 'rb'))
 pca = pickle.load(open('pca.pkl', 'rb'))
 
-st.title("Google Play Store App Success Predictor")
+# Custom styling using markdown + CSS
+st.markdown("""
+    <style>
+    .main {
+        background-color: #f5f7fa;
+    }
+    .stApp {
+        background-image: linear-gradient(to bottom, #ffffff, #e6f0ff);
+        color: #003366;
+    }
+    .title {
+        font-size: 40px;
+        font-weight: bold;
+        color: #003366;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    .subtitle {
+        font-size: 18px;
+        text-align: center;
+        margin-bottom: 30px;
+        color: #555;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
-# Input form
-app_name = st.text_input("App Name (Not used in prediction)")
+st.markdown('<div class="title">📱 Google Play App Success Predictor</div>', unsafe_allow_html=True)
+st.markdown('<div class="subtitle">Fill in the details below to predict the success of your app</div>', unsafe_allow_html=True)
 
-# Add 'Category' as the missing 9th feature
-category = st.selectbox("Category", [
-    'FAMILY', 'GAME', 'TOOLS', 'EDUCATION', 'PRODUCTIVITY'
-])  # Modify this list as per your training dataset
+# Input fields in two columns
+col1, col2 = st.columns(2)
 
-# Map category to integer (you must use the same mapping used during training!)
-category_map = {
-    'FAMILY': 0,
-    'GAME': 1,
-    'TOOLS': 2,
-    'EDUCATION': 3,
-    'PRODUCTIVITY': 4
-}
+with col1:
+    category = st.selectbox("📂 App Category", ['FAMILY', 'GAME', 'TOOLS', 'EDUCATION', 'PRODUCTIVITY'])
+    size = st.number_input("📦 App Size (MB)", min_value=1.0)
+    installs = st.number_input("⬇️ Number of Installs", min_value=0)
+    paid_status = st.selectbox("💲 Paid or Free?", ['Free', 'Paid'])
+
+with col2:
+    price = st.number_input("💰 Price (₹)", min_value=0.0)
+    rating = st.number_input("⭐ App Rating (0–5)", min_value=0.0, max_value=5.0)
+    year = st.number_input("📅 Release Year", min_value=2000, max_value=2030)
+    month = st.number_input("📅 Release Month", min_value=1, max_value=12)
+    day = st.number_input("📅 Release Day", min_value=1, max_value=31)
+
+# Category encoding
+category_map = {'FAMILY': 0, 'GAME': 1, 'TOOLS': 2, 'EDUCATION': 3, 'PRODUCTIVITY': 4}
 category_encoded = category_map[category]
-
-# Other features
-size = st.number_input("Size of the app in MB", min_value=1.0)
-installs = st.number_input("Number of installs", min_value=0)
-paid_status = st.selectbox("Is the app paid or not", ['Free', 'Paid'])
-price = st.number_input("Price of the app (₹)", min_value=0.0)
-rating = st.number_input("App Rating (0.0 to 5.0)", min_value=0.0, max_value=5.0)
-year = st.number_input("Year of release", min_value=2000, max_value=2030)
-month = st.number_input("Month of release", min_value=1, max_value=12)
-day = st.number_input("Day of release", min_value=1, max_value=31)
-
-# Encode 'Paid' as 0/1
 paid = 0 if paid_status == 'Free' else 1
 
-# Create full input array (9 features now)
+# Prepare input
 input_data = np.array([[category_encoded, size, installs, paid, price, rating, year, month, day]])
-
-# Apply PCA
 input_pca = pca.transform(input_data)
 
 # Predict
-if st.button("Predict"):
+if st.button("🚀 Predict Success"):
     prediction = model.predict(input_pca)
-    st.success(f"Predicted Success Category / Rating: {prediction[0]}")
+    st.success(f"📈 Predicted Success Rating / Category: **{prediction[0]}**")
