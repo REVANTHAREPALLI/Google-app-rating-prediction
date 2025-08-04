@@ -14,7 +14,7 @@ st.markdown("""
     <style>
     /* Background image */
     .stApp {
-        background-image: url("https://images.unsplash.com/photo-1517430816045-df4b7de01f66?auto=format&fit=crop&w=1470&q=80");
+        background-color:yellow;
         background-size: cover;
         background-position: center;
         background-attachment: fixed;
